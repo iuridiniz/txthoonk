@@ -106,14 +106,14 @@ Read more about Thoonk at http://blog.thoonk.com
 Thoonk.js
 ^^^^^^^^^
 
-Thoonk.js is the NodeJS reference implementaion of Thoonk
+Thoonk.js is the NodeJS reference implementation of Thoonk
 
 http://github.com/andyet/thoonk.js
 
 Thoonk.py
 ^^^^^^^^^
 
-Thoonk.py is the pure python reference implementaion of Thoonk
+Thoonk.py is the pure python reference implementation of Thoonk
 
 http://github.com/andyet/thoonk.py
 
