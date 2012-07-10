@@ -98,7 +98,7 @@ def runTest02():
     feed = yield pub.feed(feed_name)
 
     # set config
-    yield feed.set_config({"max_length": 1})
+    yield feed.set_config({"max_length": 40})
 
     @inlineCallbacks
     def publish(array):
