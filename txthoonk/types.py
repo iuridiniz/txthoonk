@@ -7,7 +7,44 @@ from twisted.internet import defer
 import uuid
 import time
 
-class Feed(object):
+class FeedBaseType(object):
+    def __init__(self, pub, name):
+        '''
+        Create a new Feed object for a given Thoonk feed name.
+
+        @param pub: the ThoonkPub object
+        @param name: the name of this feed
+        '''
+        self.pub = pub
+        self.name = name
+
+    def get_config(self):
+        '''
+        Get the configuration dictionary of this feed.
+        '''
+        return self.pub.get_config(self.name)
+
+    def set_config(self, conf):
+        '''
+        Set configuration of this feed.
+
+        @param conf: the configuration dictionary.
+        '''
+        return self.pub.set_config(self.name, conf)
+
+    def get_schema(self):
+        '''
+        Get the redis keys used by this feed.
+        '''
+        return []
+
+    def get_channels(self):
+        '''
+        Get the redis channels used by this channel.
+        '''
+        return []
+
+class Feed(FeedBaseType):
     """
     A Thoonk feed is a collection of items ordered by publication date.
 
@@ -49,31 +86,30 @@ class Feed(object):
         @param pub: the ThoonkPub object
         @param name: the name of this feed
         '''
-        self.pub = pub
-        self.name = name
+        super(Feed, self).__init__(pub, name)
 
-        self.feed_ids = 'feed.ids:%s' % name
-        self.feed_items = 'feed.items:%s' % name
-        self.feed_publishes = 'feed.publishes:%s' % name
-        self.feed_config = 'feed.config:%s' % name
+        self.feed_ids = 'feed.ids:%s' % self.name
+        self.feed_items = 'feed.items:%s' % self.name
+        self.feed_publishes = 'feed.publishes:%s' % self.name
+        self.feed_config = 'feed.config:%s' % self.name
 
-        self.channel_retract = 'feed.retract:%s' % name
-        self.channel_edit = 'feed.edit:%s' % name
-        self.channel_publish = 'feed.publish:%s' % name
+        self.channel_retract = 'feed.retract:%s' % self.name
+        self.channel_edit = 'feed.edit:%s' % self.name
+        self.channel_publish = 'feed.publish:%s' % self.name
 
-    def get_config(self):
+    def get_schema(self):
         '''
-        Get the configuration dictionary of this feed.
+        Get the redis keys used by this feed.
         '''
-        return self.pub.get_config(self.name)
+        return [self.feed_ids, self.feed_items,
+                self.feed_publishes, self.feed_config]
 
-    def set_config(self, conf):
+    def get_channels(self):
         '''
-        Set configuration of this feed.
-
-        @param conf: the configuration dictionary.
+        Get the redis channels used by this channel.
         '''
-        return self.pub.set_config(self.name, conf)
+        return [self.channel_retract, self.channel_edit,
+                self.channel_publish]
 
     def publish(self, item, id_=None):
         '''
