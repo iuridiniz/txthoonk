@@ -112,15 +112,15 @@ class ThoonkPub(ThoonkBase):
         @param kls: the python class of feed
         @param type_: the type of feed to be stored in.
         '''
-        config = {'type': type_}
-        def _create_type(feed_name):
+        base_config = {'type': type_}
+        def _create_type(feed_name, config={}):
             '''
             Creates a new feed of this type.
 
             @param feed_name: the name of the feed.
             '''
             def _get_feed(*args):
-                """Create a new a new instance of passed class"""
+                """Create a new instance of passed class"""
                 return kls(pub=self, name=feed_name)
             def _exists(ret):
                 """
@@ -129,6 +129,7 @@ class ThoonkPub(ThoonkBase):
                 if ret:
                     return _get_feed()
 
+                config.update(base_config)
                 d = self.create_feed(feed_name, config)
                 d.addCallback(_get_feed)
                 return d
