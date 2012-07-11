@@ -102,6 +102,7 @@ class ThoonkPub(ThoonkBase):
 
     def __init__(self, *args, **kwargs):
         self.feed = self._get_feed_type(Feed, type_="feed")
+        self._types = dict(feed=self.feed)
         super(ThoonkPub, self).__init__(*args, **kwargs)
 
     def _get_feed_type(self, kls, type_):
@@ -135,6 +136,30 @@ class ThoonkPub(ThoonkBase):
             return self.feed_exists(feed_name).addCallback(_exists)
 
         return _create_type
+
+    def _get_typed_feed(self, feed_name):
+        """
+        Try to discovery a type of a feed and return it as an instance of the
+        discovered type.
+
+        @param feed_name: the name of feed
+        """
+        def _got_error(f):
+            f.trap(FeedDoesNotExist)
+            return None
+
+        def _got_config(config):
+            feed_type = config.get("type")
+            feed_getter = self._types.get(feed_type)
+            if not feed_getter:
+                # unknown type
+                return None
+            return feed_getter(feed_name)
+
+        d = self.get_config(feed_name)
+        d.addCallback(_got_config)
+        d.addErrback(_got_error)
+        return d
 
     def _publish_channel(self, channel, *args):
         """Calls self.publish_channel appending self._uuid at end"""
