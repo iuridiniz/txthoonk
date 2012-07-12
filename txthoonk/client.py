@@ -21,7 +21,8 @@ class FeedExists(Exception):
 class FeedDoesNotExist(Exception):
     pass
 
-
+#XXX: Maybe necessary a DefferedLock in order to avoid concurrency use of
+#     redis instance (while issuing a watch/multi/exec as example)
 class ThoonkBase(object):
     """
     Thoonk object base class.
