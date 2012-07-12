@@ -92,6 +92,9 @@ class SortedFeed(FeedBaseType):
     def prepend(self, item):
         return self._publish(item, where=":begin")
 
+    def has_id(self, id_):
+        return self.pub.redis.hexists(self.feed_items, id_)
+
     def get_ids(self):
         return self.pub.redis.lrange(self.feed_ids, 0, -1)
 

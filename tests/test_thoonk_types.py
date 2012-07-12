@@ -447,7 +447,6 @@ class TestThoonkSortedFeed(TestThoonkBase):
         yield self.feed.prepend(item)
         yield cb
 
-
     ############################################################################
     #  Tests for get*
     ############################################################################
@@ -493,6 +492,23 @@ class TestThoonkSortedFeed(TestThoonkBase):
         ret_items = ret.values()
         self.assertEqual(set(ret_ids), set(ids))
         self.assertEqual(set(ret_items), set(items))
+
+    ############################################################################
+    #  Tests for has_id
+    ############################################################################
+    @defer.inlineCallbacks
+    def testFeedHasId(self):
+        item = "my beautiful item"
+        feed = self.feed
+
+        id_ = yield feed.append(item)
+
+        ret = yield feed.has_id(id_)
+        self.assertTrue(ret)
+
+        # non existing item
+        ret = yield feed.has_id(id_ + "123")
+        self.assertFalse(ret)
 
 if __name__ == "__main__":
     pass
