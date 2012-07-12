@@ -212,19 +212,17 @@ class ThoonkPub(ThoonkBase):
 
         @param feed_name: The name of the feed.
         """
-        hash_feed_config = "feed.config:%s" % feed_name
-
         def _exec_check(bulk_result):
             # All defers must be succeed
             assert all([a[0] for a in bulk_result])
             # assert number of commands
-            assert len(bulk_result) == 7
+            assert len(bulk_result) >= 3
 
             multi_result = bulk_result[-1][1]
             if multi_result:
                 # transaction done :D
                 # assert number commands in transaction
-                assert len(multi_result) == 3
+                assert len(multi_result) >= 2
                 # check if feed_name existed when was deleted
                 exists = multi_result[0]
                 if not exists:
@@ -235,19 +233,30 @@ class ThoonkPub(ThoonkBase):
             # repeat it
             return self.delete_feed(feed_name)
 
-        defers = []
-        # issue all commands in order to avoid concurrent calls
-        defers.append(self.redis.watch("feeds")) #0
-        defers.append(self.redis.watch(hash_feed_config)) #1
-        # begin transaction
-        defers.append(self.redis.multi()) #2
-        defers.append(self.redis.srem("feeds", feed_name)) #3 - #0
-        defers.append(self.redis.delete(hash_feed_config)) #4 - #1
-        defers.append(self._publish_channel("delfeed", feed_name)) #5 - #2
-        # end transaction
-        defers.append(self.redis.execute()) #6
+        def _got_keys(keys):
+            defers = []
+            # issue all commands in order to avoid concurrent calls
+            defers.append(self.redis.watch("feeds")) #0
+            for key in keys:
+                defers.append(self.redis.watch(key))
+            # begin transaction
+            defers.append(self.redis.multi()) #?
+            defers.append(self.redis.srem("feeds", feed_name)) #? - #0
+            for key in keys:
+                defers.append(self.redis.delete(key))
+            defers.append(self._publish_channel("delfeed", feed_name)) #? - #-1
+            # end transaction
+            defers.append(self.redis.execute()) #6
 
-        return defer.DeferredList(defers).addCallback(_exec_check)
+            return defer.DeferredList(defers).addCallback(_exec_check)
+
+        def _got_typed_feed(feed):
+            keys = set(["feed.config:%s" % feed_name])
+            if feed:
+                keys.update(set(feed.get_schema()))
+            return _got_keys(keys)
+
+        return self._get_typed_feed(feed_name).addCallback(_got_typed_feed)
 
     def feed_exists(self, feed_name):
         """

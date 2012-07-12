@@ -269,6 +269,24 @@ class TestThoonkPubSub(TestThoonkBase):
         feed_exists = yield self.pub.feed_exists(feed_name)
         self.assertTrue(feed_exists)
 
+    @defer.inlineCallbacks
+    def testTypeFeedDelete(self):
+        feed_name = "test"
+        feed = yield self.pub.feed(feed_name)
+        from txthoonk.types import Feed
+        self.assertIsInstance(feed, Feed)
+
+        feed_exists = yield self.pub.feed_exists(feed_name)
+        self.assertTrue(feed_exists)
+
+        #publish some item
+        yield feed.publish("hey hou")
+
+        yield self.pub.delete_feed(feed_name)
+
+        for key in feed.get_schema():
+            ret = yield self.pub.redis.exists(key)
+            self.assertFalse(ret, "Redis still has key %s" % key)
 
     ############################################################################
     #  Tests for publish_channel
