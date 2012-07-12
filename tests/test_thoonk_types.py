@@ -343,7 +343,7 @@ class TestThoonkSortedFeed(TestThoonkBase):
                          "feed.publish:%s" % self.feed_name)
 
     ############################################################################
-    #  Tests for publish (append)
+    #  Tests for publish (append/prepend)
     ############################################################################
     @defer.inlineCallbacks
     def testFeedPublish(self):
