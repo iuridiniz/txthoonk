@@ -38,7 +38,7 @@ class SortedFeed(FeedBaseType):
 
     def get_channels(self):
         '''
-        Get the redis channels used by this channel.
+        Get the redis channels used by this feed.
         '''
         return [self.channel_retract, self.channel_position,
                 self.channel_publish]

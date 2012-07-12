@@ -37,6 +37,6 @@ class FeedBaseType(object):
 
     def get_channels(self):
         '''
-        Get the redis channels used by this channel.
+        Get the redis channels used by this feed.
         '''
         return []
