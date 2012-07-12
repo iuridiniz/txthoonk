@@ -394,7 +394,7 @@ class TestThoonkSortedFeed(TestThoonkBase):
         yield cb
 
     @defer.inlineCallbacks
-    def testPositionEvent(self):
+    def testPositionEndEvent(self):
         item = "my beautiful item"
         feed = self.feed
         @self.check_called
@@ -407,7 +407,7 @@ class TestThoonkSortedFeed(TestThoonkBase):
 
         # Assuring that redis.messageReceived (sub) was called
         cb = self.msg_rcv
-        yield self.feed.publish(item)
+        yield self.feed.append(item)
         yield cb
 
     @defer.inlineCallbacks
@@ -429,6 +429,24 @@ class TestThoonkSortedFeed(TestThoonkBase):
         # check on redis for ids
         ret = yield self.pub.redis.lrange(feed.feed_ids, 0, -1)
         self.assertEqual(ret, items_ids)
+
+
+    @defer.inlineCallbacks
+    def testPositionBeginEvent(self):
+        item = "my beautiful item"
+        feed = self.feed
+        @self.check_called
+        def onPosition(*args):
+            #ret_id = args[0]
+            ret_pos = args[1]
+            self.assertEqual(ret_pos, ":begin")
+
+        yield self.sub.register_handler(feed.channel_position, onPosition)
+
+        # Assuring that redis.messageReceived (sub) was called
+        cb = self.msg_rcv
+        yield self.feed.prepend(item)
+        yield cb
 
 if __name__ == "__main__":
     pass
