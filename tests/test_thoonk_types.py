@@ -342,5 +342,39 @@ class TestThoonkSortedFeed(TestThoonkBase):
         self.assertEqual(self.feed.channel_publish,
                          "feed.publish:%s" % self.feed_name)
 
+    ############################################################################
+    #  Tests for publish
+    ############################################################################
+    @defer.inlineCallbacks
+    def testFeedPublish(self):
+        item = "my beautiful item"
+        feed = self.feed
+
+        # 0 publishes (check on redis)
+        n = yield self.pub.redis.get(feed.feed_publishes)
+        self.assertFalse(n)
+
+        # 0 ids on counter (check on redis)
+        n = yield self.pub.redis.get(feed.feed_id_incr)
+        self.assertFalse(n)
+
+        id_ = yield feed.publish(item)
+
+        # check on redis for new id
+        ret = yield self.pub.redis.lrange(feed.feed_ids, 0, -1)
+        self.assertEqual(ret, [id_])
+
+        # check on redis for publishes increment
+        n = yield self.pub.redis.get(feed.feed_publishes)
+        self.assertEqual(n, '1')
+
+        # check on redis for ids counter increment
+        n = yield self.pub.redis.get(feed.feed_id_incr)
+        self.assertEqual(n, '1')
+
+        # check on redis for new item
+        ret = yield self.pub.redis.hget(feed.feed_items, id_)
+        self.assertEqual(ret[id_], item)
+
 if __name__ == "__main__":
     pass

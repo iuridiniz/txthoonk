@@ -42,3 +42,36 @@ class SortedFeed(FeedBaseType):
         '''
         return [self.channel_retract, self.channel_position,
                 self.channel_publish]
+
+    def publish(self, item):
+        redis = self.pub.redis
+
+        def _check_exec(multi_result, id_):
+            if multi_result:
+                # Transaction done :D
+                # assert number commands in transaction
+                assert len(multi_result) == 5
+                return id_
+
+            # Transaction fail :(
+            # repeat it
+            return self.publish(item)
+
+        def _got_id(id_):
+            # begin transaction
+            id_ = str(id_)
+            d = redis.multi()
+            d.addCallback(lambda x: redis.rpush(self.feed_ids, id_)) #0
+            d.addCallback(lambda x: redis.hset(self.feed_items, id_, item)) #1
+            d.addCallback(lambda x: redis.incr(self.feed_publishes)) #2
+            d.addCallback(lambda x: \
+                            self.pub.publish_channel(self.channel_publish,
+                                                     id_, item)) #3
+            d.addCallback(lambda x: \
+                            self.pub.publish_channel(self.channel_position,
+                                                     id_, ":end")) #4
+            d.addCallback(lambda x: redis.execute())
+            return d.addCallback(_check_exec, id_)
+
+
+        return redis.incr(self.feed_id_incr).addCallback(_got_id)
