@@ -304,5 +304,34 @@ class TestThoonkSortedFeed(TestThoonkBase):
     def setUp(self):
         yield TestThoonkBase.setUp(self)
 
+        self.feed_name = "test_sorted_feed"
+        self.config = {'type': 'sorted_feed'}
+        yield self.pub.create_feed(self.feed_name, self.config)
+
+        from txthoonk.types import SortedFeed
+        self.feed = SortedFeed(pub=self.pub, name=self.feed_name)
+
+        # check properties
+        self.assertEqual(self.pub, self.feed.pub)
+        self.assertEqual(self.feed_name, self.feed.name)
+
+        self.assertEqual(self.feed.feed_ids,
+                         "feed.ids:%s" % self.feed_name)
+        self.assertEqual(self.feed.feed_items,
+                         "feed.items:%s" % self.feed_name)
+        self.assertEqual(self.feed.feed_publishes,
+                         "feed.publishes:%s" % self.feed_name)
+        self.assertEqual(self.feed.feed_config,
+                         "feed.config:%s" % self.feed_name)
+        self.assertEqual(self.feed.feed_id_incr,
+                         "feed.idincr:%s" % self.feed_name)
+
+        self.assertEqual(self.feed.channel_retract,
+                         "feed.retract:%s" % self.feed_name)
+        self.assertEqual(self.feed.channel_position,
+                         "feed.position:%s" % self.feed_name)
+        self.assertEqual(self.feed.channel_publish,
+                         "feed.publish:%s" % self.feed_name)
+
 if __name__ == "__main__":
     pass
