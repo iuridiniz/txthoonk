@@ -430,7 +430,6 @@ class TestThoonkSortedFeed(TestThoonkBase):
         ret = yield self.pub.redis.lrange(feed.feed_ids, 0, -1)
         self.assertEqual(ret, items_ids)
 
-
     @defer.inlineCallbacks
     def testPositionBeginEvent(self):
         item = "my beautiful item"
