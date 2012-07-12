@@ -285,3 +285,9 @@ class Feed(FeedBaseType):
         Return all items from the feed.
         '''
         return self.pub.redis.hgetall(self.feed_items)
+
+    def get_items(self):
+        '''
+        Return all items from the feed.
+        '''
+        return self.get_all()
