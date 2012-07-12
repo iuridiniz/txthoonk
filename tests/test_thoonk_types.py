@@ -376,5 +376,39 @@ class TestThoonkSortedFeed(TestThoonkBase):
         ret = yield self.pub.redis.hget(feed.feed_items, id_)
         self.assertEqual(ret[id_], item)
 
+    @defer.inlineCallbacks
+    def testPublishEvent(self):
+        item = "my beautiful item"
+        feed = self.feed
+        @self.check_called
+        def onPublish(*args):
+            #ret_id = args[0]
+            ret_item = args[1]
+            self.assertEqual(ret_item, item)
+
+        yield self.sub.register_handler(feed.channel_publish, onPublish)
+
+        # Assuring that redis.messageReceived (sub) was called
+        cb = self.msg_rcv
+        yield self.feed.publish(item)
+        yield cb
+
+    @defer.inlineCallbacks
+    def testPositionEvent(self):
+        item = "my beautiful item"
+        feed = self.feed
+        @self.check_called
+        def onPosition(*args):
+            #ret_id = args[0]
+            ret_pos = args[1]
+            self.assertEqual(ret_pos, ":end")
+
+        yield self.sub.register_handler(feed.channel_position, onPosition)
+
+        # Assuring that redis.messageReceived (sub) was called
+        cb = self.msg_rcv
+        yield self.feed.publish(item)
+        yield cb
+
 if __name__ == "__main__":
     pass
