@@ -73,5 +73,7 @@ class SortedFeed(FeedBaseType):
             d.addCallback(lambda x: redis.execute())
             return d.addCallback(_check_exec, id_)
 
-
         return redis.incr(self.feed_id_incr).addCallback(_got_id)
+
+    def append(self, item):
+        return self.publish(item)
