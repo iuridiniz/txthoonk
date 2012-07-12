@@ -447,5 +447,52 @@ class TestThoonkSortedFeed(TestThoonkBase):
         yield self.feed.prepend(item)
         yield cb
 
+
+    ############################################################################
+    #  Tests for get*
+    ############################################################################
+    @defer.inlineCallbacks
+    def testFeedGetItem(self):
+        item = "my beautiful item"
+        feed = self.feed
+
+        id_ = yield feed.append(item)
+
+        ret = yield feed.get_item(id_)
+        self.assertEqual(ret, {id_: item})
+
+        # non existing item
+        ret = yield feed.get_item(id_ + "123")
+        self.assertIsNone(ret)
+
+    @defer.inlineCallbacks
+    def testFeedGetIds(self):
+        item = "my beautiful item"
+        feed = self.feed
+
+        id_ = yield feed.append(item)
+
+        ret = yield feed.get_ids()
+        self.assertEqual(ret, [id_])
+
+    @defer.inlineCallbacks
+    def testFeedGetIdsGetItems(self):
+        import string
+        items = string.printable
+        feed = self.feed
+        ids = []
+        for item in items:
+            id_ = yield feed.prepend(item)
+            ids.append(id_)
+
+        ret = yield feed.get_ids()
+        self.assertEqual(set(ret), set(ids))
+
+        ret = yield feed.get_items()
+        ret_ids = ret.keys()
+        ret_items = ret.values()
+        self.assertEqual(set(ret_ids), set(ids))
+        self.assertEqual(set(ret_items), set(items))
+
 if __name__ == "__main__":
     pass
