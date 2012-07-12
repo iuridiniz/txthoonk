@@ -288,6 +288,16 @@ class TestThoonkPubSub(TestThoonkBase):
             ret = yield self.pub.redis.exists(key)
             self.assertFalse(ret, "Redis still has key %s" % key)
 
+    @defer.inlineCallbacks
+    def testTypeSortedFeed(self):
+        feed_name = "test"
+        feed = yield self.pub.sorted_feed(feed_name)
+        from txthoonk.types import SortedFeed
+        self.assertIsInstance(feed, SortedFeed)
+
+        feed_exists = yield self.pub.feed_exists(feed_name)
+        self.assertTrue(feed_exists)
+
     ############################################################################
     #  Tests for publish_channel
     ############################################################################

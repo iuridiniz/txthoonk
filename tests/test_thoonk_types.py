@@ -299,5 +299,10 @@ class TestThoonkFeed(TestThoonkBase):
         self.assertFalse(ret)
 
 
+class TestThoonkSortedFeed(TestThoonkBase):
+    @defer.inlineCallbacks
+    def setUp(self):
+        yield TestThoonkBase.setUp(self)
+
 if __name__ == "__main__":
     pass

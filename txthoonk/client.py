@@ -8,6 +8,7 @@ from twisted.internet import interfaces
 import uuid
 import itertools
 from txthoonk.types import Feed
+from txthoonk.types.sorted_feed import SortedFeed
 
 try:
     from collection import OrderedDict
@@ -102,7 +103,8 @@ class ThoonkPub(ThoonkBase):
 
     def __init__(self, *args, **kwargs):
         self.feed = self._get_feed_type(Feed, type_="feed")
-        self._types = dict(feed=self.feed)
+        self.sorted_feed = self._get_feed_type(SortedFeed, type_="sorted_feed")
+        self._types = dict(feed=self.feed, sorted_feed=self.sorted_feed)
         super(ThoonkPub, self).__init__(*args, **kwargs)
 
     def _get_feed_type(self, kls, type_):
