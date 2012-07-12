@@ -343,7 +343,7 @@ class TestThoonkSortedFeed(TestThoonkBase):
                          "feed.publish:%s" % self.feed_name)
 
     ############################################################################
-    #  Tests for publish
+    #  Tests for publish (append)
     ############################################################################
     @defer.inlineCallbacks
     def testFeedPublish(self):
@@ -409,6 +409,26 @@ class TestThoonkSortedFeed(TestThoonkBase):
         cb = self.msg_rcv
         yield self.feed.publish(item)
         yield cb
+
+    @defer.inlineCallbacks
+    def testFeedAppendPrepend(self):
+        items = ["most important item",
+                 "my beautiful item",
+                 "another amazing item",
+                 "ridiculous item"]
+        items_ids = []
+        feed = self.feed
+
+        for item in items[1:]:
+            id_ = yield feed.append(item)
+            items_ids.append(id_)
+
+        id_ = yield feed.prepend(item)
+        items_ids.insert(0, id_)
+
+        # check on redis for ids
+        ret = yield self.pub.redis.lrange(feed.feed_ids, 0, -1)
+        self.assertEqual(ret, items_ids)
 
 if __name__ == "__main__":
     pass

@@ -29,21 +29,9 @@ class SortedFeed(FeedBaseType):
         self.channel_position = 'feed.position:%s' % self.name
         self.channel_publish = 'feed.publish:%s' % self.name
 
-    def get_schema(self):
-        '''
-        Get the redis keys used by this feed.
-        '''
-        return [self.feed_ids, self.feed_items,
-                self.feed_publishes, self.feed_config, self.feed_id_incr]
+    def _publish(self, item, where):
+        assert where in (":end", ":begin")
 
-    def get_channels(self):
-        '''
-        Get the redis channels used by this feed.
-        '''
-        return [self.channel_retract, self.channel_position,
-                self.channel_publish]
-
-    def publish(self, item):
         redis = self.pub.redis
 
         def _check_exec(multi_result, id_):
@@ -61,7 +49,13 @@ class SortedFeed(FeedBaseType):
             # begin transaction
             id_ = str(id_)
             d = redis.multi()
-            d.addCallback(lambda x: redis.rpush(self.feed_ids, id_)) #0
+
+            if where == ":end":
+                push = redis.rpush
+            elif where == ":begin":
+                push = redis.lpush
+
+            d.addCallback(lambda x: push(self.feed_ids, id_)) #0
             d.addCallback(lambda x: redis.hset(self.feed_items, id_, item)) #1
             d.addCallback(lambda x: redis.incr(self.feed_publishes)) #2
             d.addCallback(lambda x: \
@@ -69,11 +63,31 @@ class SortedFeed(FeedBaseType):
                                                      id_, item)) #3
             d.addCallback(lambda x: \
                             self.pub.publish_channel(self.channel_position,
-                                                     id_, ":end")) #4
+                                                     id_, where)) #4
             d.addCallback(lambda x: redis.execute())
             return d.addCallback(_check_exec, id_)
 
         return redis.incr(self.feed_id_incr).addCallback(_got_id)
 
+    def get_schema(self):
+        '''
+        Get the redis keys used by this feed.
+        '''
+        return [self.feed_ids, self.feed_items,
+                self.feed_publishes, self.feed_config, self.feed_id_incr]
+
+    def get_channels(self):
+        '''
+        Get the redis channels used by this feed.
+        '''
+        return [self.channel_retract, self.channel_position,
+                self.channel_publish]
+
+    def publish(self, item):
+        return self.append(item)
+
     def append(self, item):
-        return self.publish(item)
+        return self._publish(item, where=":end")
+
+    def prepend(self, item):
+        return self._publish(item, where=":begin")
