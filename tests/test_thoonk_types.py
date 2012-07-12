@@ -85,7 +85,7 @@ class TestThoonkFeed(TestThoonkBase):
 
         # check on redis for new id
         ret = yield self.pub.redis.zrange(feed.feed_ids, 0, -1)
-        self.assertTrue(ret, [id_])
+        self.assertEqual(ret, [id_])
 
         # check on redis for publishes increment
         n = yield self.pub.redis.get(feed.feed_publishes)
