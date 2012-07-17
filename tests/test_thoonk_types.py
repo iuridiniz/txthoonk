@@ -532,7 +532,19 @@ class TestThoonkSortedFeed(TestThoonkBase):
         ret = yield feed.get_id(id_)
         self.assertEqual(ret, {id_: item})
 
+        @self.check_called
+        def onEdit(*args):
+            ret_id = args[0]
+            ret_item = args[1]
+            self.assertEqual(ret_id, id_)
+            self.assertEqual(ret_item, item2)
+
+        yield self.sub.register_handler(feed.channel_publish, onEdit)
+
+        # Assuring that redis.messageReceived (sub) was called
+        cb = self.msg_rcv
         ret = yield feed.edit(id_, item2)
+        yield cb
 
         self.assertEquals(ret, id_)
 
@@ -541,6 +553,7 @@ class TestThoonkSortedFeed(TestThoonkBase):
 
         ret = yield feed.get_id(id_)
         self.assertEqual(ret, {id_: item2})
+
 
 if __name__ == "__main__":
     pass
