@@ -106,3 +106,6 @@ class SortedFeed(FeedBaseType):
 
     def get_item(self, id_):
         return self.pub.redis.hget(self.feed_items, id_)
+
+    def get_id(self, id_):
+        return self.get_item(id_)
