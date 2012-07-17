@@ -510,5 +510,37 @@ class TestThoonkSortedFeed(TestThoonkBase):
         ret = yield feed.has_id(id_ + "123")
         self.assertFalse(ret)
 
+    ############################################################################
+    #  Tests for edit
+    ############################################################################
+    @defer.inlineCallbacks
+    def testFeedEdit(self):
+        item = "my beautiful item"
+        item2 = "replacement item"
+
+        feed = self.feed
+
+        id_ = yield feed.append(item)
+
+        ids = yield feed.get_ids()
+        self.assertEqual(len(ids), 1)
+
+        # editing a id that does not exist.
+        ret = yield feed.edit(id_ + "123", item)
+        self.assertFalse(ret)
+
+        ret = yield feed.get_id(id_)
+        self.assertEqual(ret, {id_: item})
+
+        ret = yield feed.edit(id_, item2)
+
+        self.assertEquals(ret, id_)
+
+        ids = yield feed.get_ids()
+        self.assertEqual(len(ids), 1)
+
+        ret = yield feed.get_id(id_)
+        self.assertEqual(ret, {id_: item2})
+
 if __name__ == "__main__":
     pass
